@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Калькулятор трат и мечты</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="container">
+    <h1>Калькулятор трат и мечты</h1>
+
+    <!-- ===================== СЕКЦИЯ: ДОХОД ===================== -->
+    <section class="card" id="section-income">
+      <h2>Мой доход</h2>
+      <label for="income-input">Ежемесячный доход (₽)</label>
+      <div class="input-row">
+        <input
+          type="number"
+          id="income-input"
+          placeholder="Например: 60000"
+          min="0"
+        />
+        <button id="btn-save-income">Сохранить</button>
+      </div>
+      <p class="hint">Укажите сумму, которую получаете в месяц после налогов.</p>
+    </section>
+
+    <!-- ===================== СЕКЦИЯ: КАТЕГОРИИ ТРАТ ===================== -->
+    <section class="card" id="section-categories">
+      <h2>Категории трат</h2>
+
+      <!-- Форма добавления категории -->
+      <div class="add-category-form">
+        <input
+          type="text"
+          id="cat-name"
+          placeholder="Название (например: Еда)"
+          maxlength="40"
+        />
+        <input
+          type="number"
+          id="cat-amount"
+          placeholder="Сумма (₽)"
+          min="0"
+        />
+        <select id="cat-period">
+          <option value="day">В день</option>
+          <option value="week">В неделю</option>
+          <option value="month" selected>В месяц</option>
+        </select>
+        <button id="btn-add-category">Добавить</button>
+      </div>
+
+      <!-- Список добавленных категорий (заполняется из JS) -->
+      <ul id="categories-list" class="categories-list">
+        <!-- Пример строки, генерируется через render():
+        <li>
+          <span class="cat-label">Еда — 15 000 ₽/мес</span>
+          <button class="btn-delete" data-id="...">✕</button>
+        </li>
+        -->
+      </ul>
+    </section>
+
+    <!-- ===================== СЕКЦИЯ: ЦЕЛЬ ===================== -->
+    <section class="card" id="section-goal">
+      <h2>Моя мечта</h2>
+      <label for="goal-name">Название цели</label>
+      <input
+        type="text"
+        id="goal-name"
+        placeholder="Например: Поездка в Японию"
+        maxlength="60"
+      />
+      <label for="goal-amount">Нужная сумма (₽)</label>
+      <div class="input-row">
+        <input
+          type="number"
+          id="goal-amount"
+          placeholder="Например: 200000"
+          min="0"
+        />
+        <button id="btn-save-goal">Сохранить</button>
+      </div>
+    </section>
+
+    <!-- ===================== СЕКЦИЯ: ИТОГ ===================== -->
+    <section class="card" id="section-result">
+      <h2>Итог</h2>
+      <!-- Содержимое генерируется через render() в app.js -->
+      <div id="result-content">
+        <p class="hint">Заполните доход, категории трат и цель — здесь появится расчёт.</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- Подключаем логику приложения -->
+  <script src="app.js"></script>
+  <!-- Подключаем тесты: они запускаются автоматически и выводят результат в консоль -->
+  <script src="app.test.js"></script>
+
+</body>
+</html>

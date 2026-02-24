@@ -1,0 +1,250 @@
+/* ==========================================
+   Общий сброс и базовые настройки
+   ========================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background-color: #f0f4f8;
+  color: #2d3748;
+  padding: 24px 16px;
+  min-height: 100vh;
+}
+
+/* ==========================================
+   Центральная колонка
+   ========================================== */
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: #1a202c;
+  text-align: center;
+}
+
+/* ==========================================
+   Карточка — блок-секция
+   ========================================== */
+.card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+}
+
+.card h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #2d3748;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 8px;
+}
+
+/* ==========================================
+   Метки и подсказки
+   ========================================== */
+label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4a5568;
+  margin-bottom: 6px;
+  margin-top: 12px;
+}
+
+label:first-of-type {
+  margin-top: 0;
+}
+
+.hint {
+  font-size: 0.8rem;
+  color: #a0aec0;
+  margin-top: 8px;
+}
+
+/* ==========================================
+   Поля ввода и кнопки
+   ========================================== */
+input[type="text"],
+input[type="number"],
+select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1.5px solid #cbd5e0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #2d3748;
+  background: #f7fafc;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus {
+  border-color: #667eea;
+  background: #fff;
+}
+
+/* Строка: поле + кнопка рядом */
+.input-row {
+  display: flex;
+  gap: 10px;
+}
+
+.input-row input {
+  flex: 1;
+}
+
+button {
+  padding: 10px 18px;
+  background-color: #667eea;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+button:hover {
+  background-color: #5a67d8;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+/* ==========================================
+   Форма добавления категории
+   ========================================== */
+.add-category-form {
+  display: grid;
+  /* Две колонки: название широкое, сумма и периодичность */
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Поле "название" — занимает всю ширину */
+.add-category-form input[type="text"] {
+  grid-column: 1 / -1;
+}
+
+/* Кнопка — тоже на всю ширину снизу */
+.add-category-form button {
+  grid-column: 1 / -1;
+}
+
+/* ==========================================
+   Список категорий
+   ========================================== */
+.categories-list {
+  list-style: none;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.categories-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.cat-label {
+  font-size: 0.9rem;
+  color: #2d3748;
+}
+
+/* Маленькая кнопка удаления */
+.btn-delete {
+  padding: 4px 10px;
+  background-color: #fc8181;
+  font-size: 0.8rem;
+  font-weight: 700;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.btn-delete:hover {
+  background-color: #f56565;
+}
+
+/* ==========================================
+   Блок итогов
+   ========================================== */
+#result-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.result-row .result-label {
+  font-size: 0.9rem;
+  color: #4a5568;
+}
+
+.result-row .result-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #2d3748;
+}
+
+/* Позитивный остаток — зелёный */
+.result-row.positive .result-value {
+  color: #38a169;
+}
+
+/* Отрицательный остаток — красный */
+.result-row.negative .result-value {
+  color: #e53e3e;
+}
+
+/* Выделенная строка с мечтой */
+.result-row.highlight {
+  background: #ebf4ff;
+  border-color: #bee3f8;
+}
+
+.result-row.highlight .result-value {
+  color: #2b6cb0;
+}
+
+/* Предупреждение, если расходы превышают доход */
+.warning {
+  background: #fff5f5;
+  border: 1px solid #feb2b2;
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #c53030;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
