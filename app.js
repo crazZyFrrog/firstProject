@@ -465,13 +465,60 @@ function handleSaveGoal() {
 
 
 // ============================================================
-// 7. СТАРТ ПРИЛОЖЕНИЯ
+// 7. ТЕМА (светлая / тёмная)
+// Тема хранится в localStorage отдельно от данных приложения.
+// Активируется через атрибут data-theme="dark" на <html>.
+// ============================================================
+
+const THEME_KEY = 'dream_calc_theme';
+
+/**
+ * Применяет тему и обновляет иконку кнопки.
+ * @param {string} theme — 'light' | 'dark'
+ */
+function applyTheme(theme) {
+  const html = document.documentElement; // это тег <html>
+  const btn  = document.getElementById('btn-theme-toggle');
+
+  if (theme === 'dark') {
+    html.setAttribute('data-theme', 'dark');
+    btn.textContent = '☀️'; // в тёмной теме предлагаем переключиться на свет
+    btn.title = 'Светлая тема';
+  } else {
+    html.removeAttribute('data-theme');
+    btn.textContent = '🌙'; // в светлой теме предлагаем тёмную
+    btn.title = 'Тёмная тема';
+  }
+}
+
+/** Загружает сохранённую тему из localStorage и применяет её */
+function loadTheme() {
+  const saved = localStorage.getItem(THEME_KEY) || 'light';
+  applyTheme(saved);
+}
+
+/** Переключает тему и сохраняет выбор */
+function handleThemeToggle() {
+  // Смотрим текущее состояние атрибута на <html>
+  const current = document.documentElement.getAttribute('data-theme');
+  const next    = current === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  localStorage.setItem(THEME_KEY, next);
+}
+
+
+// ============================================================
+// 8. СТАРТ ПРИЛОЖЕНИЯ
 // Вешаем обработчики на кнопки, загружаем данные, рисуем UI.
 // ============================================================
 
 document.getElementById('btn-save-income').addEventListener('click', handleSaveIncome);
 document.getElementById('btn-add-category').addEventListener('click', handleAddCategory);
 document.getElementById('btn-save-goal').addEventListener('click', handleSaveGoal);
+document.getElementById('btn-theme-toggle').addEventListener('click', handleThemeToggle);
+
+// Тему загружаем первой — до рендера, чтобы не было "мигания" светлого фона
+loadTheme();
 
 // Загружаем данные из localStorage и отрисовываем
 loadState();

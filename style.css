@@ -1,5 +1,12 @@
 /* ==========================================
-   Общий сброс и базовые настройки
+   Подключение шрифта Inter (Google Fonts)
+   Современный, читаемый UI-шрифт.
+   ========================================== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* ==========================================
+   Общий сброс и CSS-переменные
+   Переменные удобны: поменял в одном месте — изменилось везде.
    ========================================== */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -7,48 +14,201 @@
   padding: 0;
 }
 
+:root {
+  /* Основной акцент — индиго */
+  --color-primary:        #6366f1;
+  --color-primary-dark:   #4f46e5;
+  --color-primary-bg:     #eef2ff;
+  --color-primary-border: #c7d2fe;
+
+  /* Нейтральные тона */
+  --color-bg:       #f3f4f8;
+  --color-card:     #ffffff;
+  --color-border:   #e5e7eb;
+  --color-input-bg: #f9fafb;
+
+  /* Текст */
+  --color-text-primary:   #111827;
+  --color-text-secondary: #6b7280;
+  --color-text-muted:     #9ca3af;
+
+  /* Состояния */
+  --color-success:       #10b981;
+  --color-danger:        #ef4444;
+  --color-danger-bg:     #fef2f2;
+  --color-danger-border: #fecaca;
+  --color-danger-text:   #b91c1c;
+
+  /* Progress bar */
+  --color-progress-track: #c7d2fe;  /* фон дорожки */
+  --color-goal-bg-end:    #f5f3ff;  /* второй цвет градиента карточки мечты */
+
+  /* Скругления */
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-pill: 999px;
+
+  /* Тени */
+  --shadow-card:  0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.05);
+  --shadow-focus: 0 0 0 3px rgba(99,102,241,0.2);
+
+  /* Иконка выпадающего списка (светлая тема — тёмная стрелка) */
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b7280' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+}
+
+/* ==========================================
+   Тёмная тема
+   Переопределяем только переменные — весь остальной CSS
+   автоматически подхватывает новые значения.
+   Активируется через атрибут data-theme="dark" на <html>.
+   ========================================== */
+html[data-theme="dark"] {
+  --color-primary:        #818cf8;
+  --color-primary-dark:   #6366f1;
+  --color-primary-bg:     #1e1b4b;
+  --color-primary-border: #3730a3;
+
+  --color-bg:       #0f172a;
+  --color-card:     #1e293b;
+  --color-border:   #334155;
+  --color-input-bg: #0f172a;
+
+  --color-text-primary:   #f1f5f9;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted:     #475569;
+
+  --color-success:       #34d399;
+  --color-danger:        #f87171;
+  --color-danger-bg:     #2d0a0a;
+  --color-danger-border: #7f1d1d;
+  --color-danger-text:   #fca5a5;
+
+  --color-progress-track: #312e81;
+  --color-goal-bg-end:    #1e1b4b;
+
+  --shadow-card:  0 1px 3px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.3);
+  --shadow-focus: 0 0 0 3px rgba(129,140,248,0.35);
+
+  /* Светлая стрелка для тёмного фона select */
+  --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%2394a3b8' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");
+}
+
+/* ==========================================
+   Фон страницы
+   ========================================== */
 body {
-  font-family: 'Segoe UI', Arial, sans-serif;
-  background-color: #f0f4f8;
-  color: #2d3748;
-  padding: 24px 16px;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  background-color: var(--color-bg);
+  /* Декоративный градиент: светлая тема — светло-индиго, тёмная — тёмно-индиго */
+  background-image: radial-gradient(ellipse at 80% 0%, var(--color-primary-bg) 0%, transparent 55%);
+  color: var(--color-text-primary);
+  padding: 32px 16px 48px;
   min-height: 100vh;
+  /* Плавный переход при смене темы */
+  transition: background-color 0.25s, color 0.25s;
 }
 
 /* ==========================================
    Центральная колонка
    ========================================== */
 .container {
-  max-width: 640px;
+  max-width: 600px;
   margin: 0 auto;
 }
 
-h1 {
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin-bottom: 24px;
-  color: #1a202c;
+/* ==========================================
+   Шапка страницы
+   ========================================== */
+.page-header {
+  position: relative; /* нужно для абсолютной позиции кнопки темы */
   text-align: center;
+  margin-bottom: 32px;
+}
+
+.page-header h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+/* Подзаголовок под h1 */
+.page-header .subtitle {
+  margin-top: 6px;
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+}
+
+/* ==========================================
+   Кнопка переключения темы
+   ========================================== */
+
+/* Кнопка висит в правом верхнем углу шапки */
+.theme-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: var(--radius-pill);
+  background: var(--color-card);
+  border: 1.5px solid var(--color-border);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-card);
+  /* Убираем градиент от общего button */
+  background-image: none;
+  color: var(--color-text-primary);
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.theme-toggle:hover {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary);
+  opacity: 1;
+  box-shadow: var(--shadow-card);
+}
+
+.theme-toggle:active {
+  transform: scale(0.92);
 }
 
 /* ==========================================
    Карточка — блок-секция
    ========================================== */
 .card {
-  background: #ffffff;
-  border-radius: 12px;
+  background: var(--color-card);
+  border-radius: var(--radius-lg);
   padding: 24px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border);
+  transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
 }
 
+/* Заголовок секции: иконка + текст */
 .card h2 {
-  font-size: 1.15rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1rem;
   font-weight: 600;
-  margin-bottom: 16px;
-  color: #2d3748;
-  border-bottom: 2px solid #e2e8f0;
-  padding-bottom: 8px;
+  color: var(--color-text-primary);
+  margin-bottom: 18px;
+  letter-spacing: -0.01em;
+}
+
+/* Иконка-эмодзи рядом с заголовком */
+.card h2 .section-icon {
+  font-size: 1.1rem;
+  line-height: 1;
 }
 
 /* ==========================================
@@ -56,11 +216,11 @@ h1 {
    ========================================== */
 label {
   display: block;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 500;
-  color: #4a5568;
-  margin-bottom: 6px;
-  margin-top: 12px;
+  color: var(--color-text-secondary);
+  margin-bottom: 5px;
+  margin-top: 14px;
 }
 
 label:first-of-type {
@@ -69,63 +229,83 @@ label:first-of-type {
 
 .hint {
   font-size: 0.8rem;
-  color: #a0aec0;
-  margin-top: 8px;
+  color: var(--color-text-muted);
+  margin-top: 6px;
 }
 
 /* ==========================================
-   Поля ввода и кнопки
+   Поля ввода и select
    ========================================== */
 input[type="text"],
 input[type="number"],
 select {
   width: 100%;
-  padding: 10px 12px;
-  border: 1.5px solid #cbd5e0;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  color: #2d3748;
-  background: #f7fafc;
+  padding: 10px 13px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9375rem;
+  font-family: inherit;
+  color: var(--color-text-primary);
+  background: var(--color-input-bg);
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  appearance: none; /* убирает стандартный вид в некоторых браузерах */
 }
 
 input[type="text"]:focus,
 input[type="number"]:focus,
 select:focus {
-  border-color: #667eea;
+  border-color: var(--color-primary);
   background: #fff;
+  box-shadow: var(--shadow-focus);
+}
+
+/* Кастомная стрелка для select — берёт цвет из переменной (меняется с темой) */
+select {
+  background-image: var(--select-arrow);
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
 }
 
 /* Строка: поле + кнопка рядом */
 .input-row {
   display: flex;
-  gap: 10px;
+  gap: 8px;
 }
 
 .input-row input {
   flex: 1;
 }
 
+/* ==========================================
+   Кнопки
+   ========================================== */
+
+/* Основная кнопка — с градиентом */
 button {
   padding: 10px 18px;
-  background-color: #667eea;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
   color: #fff;
   border: none;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-family: inherit;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  transition: background-color 0.2s, transform 0.1s;
+  transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
+  box-shadow: 0 1px 3px rgba(99,102,241,0.3);
 }
 
 button:hover {
-  background-color: #5a67d8;
+  opacity: 0.9;
+  box-shadow: 0 4px 12px rgba(99,102,241,0.35);
 }
 
 button:active {
   transform: scale(0.97);
+  box-shadow: none;
 }
 
 /* ==========================================
@@ -133,59 +313,115 @@ button:active {
    ========================================== */
 .add-category-form {
   display: grid;
-  /* Две колонки: название широкое, сумма и периодичность */
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
+  margin-top: 14px;
 }
 
-/* Поле "название" — занимает всю ширину */
+/* Поле "название" — на всю ширину */
 .add-category-form input[type="text"] {
   grid-column: 1 / -1;
 }
 
-/* Кнопка — тоже на всю ширину снизу */
+/* Кнопка "Добавить" — на всю ширину */
 .add-category-form button {
   grid-column: 1 / -1;
 }
 
 /* ==========================================
-   Список категорий
+   Шаблоны-чипы
+   ========================================== */
+.templates-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+/* Чип — компактная таблетка */
+.chip {
+  padding: 5px 13px;
+  background: var(--color-input-bg);
+  color: var(--color-text-secondary);
+  font-size: 0.8125rem;
+  font-family: inherit;
+  font-weight: 500;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--color-border);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  box-shadow: none; /* переопределяем тень от общего button */
+  background-image: none; /* убираем градиент от button */
+}
+
+.chip:hover {
+  background: var(--color-primary-bg);
+  border-color: var(--color-primary);
+  color: var(--color-primary-dark);
+  box-shadow: none;
+  opacity: 1;
+}
+
+.chip:active {
+  transform: scale(0.96);
+}
+
+/* ==========================================
+   Список добавленных категорий
    ========================================== */
 .categories-list {
   list-style: none;
   margin-top: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .categories-list li {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #f7fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 10px 14px;
+  background: var(--color-input-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px 9px 14px;
+  /* Тонкая полоска-акцент слева */
+  border-left: 3px solid var(--color-primary-border);
 }
 
 .cat-label {
-  font-size: 0.9rem;
-  color: #2d3748;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
 }
 
-/* Маленькая кнопка удаления */
+/* Круглая кнопка удаления */
 .btn-delete {
-  padding: 4px 10px;
-  background-color: #fc8181;
-  font-size: 0.8rem;
-  font-weight: 700;
-  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  border-radius: var(--radius-pill);
+  border: none;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: none;
+  background-image: none;
+  transition: background 0.15s, color 0.15s;
 }
 
 .btn-delete:hover {
-  background-color: #f56565;
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+  box-shadow: none;
+  opacity: 1;
+}
+
+.btn-delete:active {
+  transform: scale(0.93);
 }
 
 /* ==========================================
@@ -194,107 +430,70 @@ button:active {
 #result-content {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
+/* Строка доход/расход — без отдельных бордеров, визуально легче */
 .result-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 14px;
-  border-radius: 8px;
-  background: #f7fafc;
-  border: 1px solid #e2e8f0;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--color-input-bg);
+  border: 1px solid var(--color-border);
 }
 
 .result-row .result-label {
-  font-size: 0.9rem;
-  color: #4a5568;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
 }
 
 .result-row .result-value {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #2d3748;
-}
-
-/* Позитивный остаток — зелёный */
-.result-row.positive .result-value {
-  color: #38a169;
-}
-
-/* Отрицательный остаток — красный */
-.result-row.negative .result-value {
-  color: #e53e3e;
-}
-
-/* Выделенная строка с мечтой */
-.result-row.highlight {
-  background: #ebf4ff;
-  border-color: #bee3f8;
-}
-
-.result-row.highlight .result-value {
-  color: #2b6cb0;
-}
-
-/* Предупреждение, если расходы превышают доход */
-.warning {
-  background: #fff5f5;
-  border: 1px solid #feb2b2;
-  border-radius: 8px;
-  padding: 12px 16px;
-  color: #c53030;
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums; /* цифры одинаковой ширины — не прыгают при обновлении */
 }
 
 /* ==========================================
-   Шаблоны-чипы для быстрого выбора категорий
+   Предупреждение о перерасходе
    ========================================== */
-.templates-chips {
+.warning {
   display: flex;
-  flex-wrap: wrap; /* чипы переносятся на новую строку при нехватке места */
+  align-items: flex-start;
   gap: 8px;
+  background: var(--color-danger-bg);
+  border: 1px solid var(--color-danger-border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  color: var(--color-danger-text);
+  font-size: 0.875rem;
+  line-height: 1.5;
 }
 
-/* Чип — компактная кнопка-тег */
-.chip {
-  padding: 6px 14px;
-  background-color: #edf2f7;
-  color: #4a5568;
-  font-size: 0.85rem;
-  font-weight: 500;
-  border-radius: 999px; /* капсульная форма */
-  border: 1.5px solid #e2e8f0;
-  cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s;
-}
-
-.chip:hover {
-  background-color: #e2e8f0;
-  border-color: #667eea;
-  color: #434190;
-}
-
-.chip:active {
-  transform: scale(0.96);
+/* Иконка ⚠ перед текстом предупреждения */
+.warning::before {
+  content: '⚠';
+  font-size: 1rem;
+  flex-shrink: 0;
+  line-height: 1.5;
 }
 
 /* ==========================================
-   Progress bar мечты (секция «Итог»)
+   Progress bar мечты
    ========================================== */
 .goal-progress {
-  background: #ebf4ff;
-  border: 1px solid #bee3f8;
-  border-radius: 10px;
-  padding: 16px;
+  background: linear-gradient(135deg, var(--color-primary-bg), var(--color-goal-bg-end));
+  border: 1px solid var(--color-primary-border);
+  border-radius: var(--radius-md);
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
-/* Строка: название мечты + сумма */
+/* Строка: название + сумма */
 .goal-progress-header {
   display: flex;
   justify-content: space-between;
@@ -304,37 +503,42 @@ button:active {
 
 .goal-name {
   font-weight: 600;
-  color: #2b6cb0;
-  font-size: 1rem;
+  color: var(--color-primary-dark);
+  font-size: 0.9375rem;
   flex: 1;
+  /* Длинные названия обрезаются с многоточием */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .goal-amount-label {
   font-weight: 700;
-  color: #2b6cb0;
-  font-size: 1rem;
+  color: var(--color-primary-dark);
+  font-size: 0.9375rem;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Дорожка прогресс-бара */
 .progress-track {
   width: 100%;
-  height: 12px;
-  background-color: #bee3f8;
-  border-radius: 999px;
-  overflow: hidden; /* чтобы заливка не вылезала за скруглённые края */
+  height: 10px;
+  background-color: var(--color-progress-track);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
 }
 
-/* Заполненная часть: ширина задаётся через JS (style="width: X%") */
+/* Заполненная часть: ширина задаётся через JS */
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #667eea, #48bb78);
-  border-radius: 999px;
-  transition: width 0.4s ease; /* плавное изменение при пересчёте */
-  min-width: 4px; /* чтобы хоть что-то было видно при 0% */
+  background: linear-gradient(90deg, var(--color-primary), var(--color-success));
+  border-radius: var(--radius-pill);
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 4px;
 }
 
-/* Строка под полосой: откладываю + срок */
+/* Строка под полосой */
 .goal-progress-footer {
   display: flex;
   justify-content: space-between;
@@ -344,12 +548,13 @@ button:active {
 }
 
 .goal-savings-label {
-  font-size: 0.85rem;
-  color: #4a5568;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
 }
 
 .goal-time-label {
-  font-size: 0.85rem;
-  color: #2b6cb0;
+  font-size: 0.8125rem;
+  color: var(--color-primary-dark);
+  font-weight: 500;
   text-align: right;
 }
