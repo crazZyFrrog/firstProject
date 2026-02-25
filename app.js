@@ -497,6 +497,70 @@ function loadTheme() {
   applyTheme(saved);
 }
 
+// Флаг: ждём второго клика для подтверждения сброса
+let resetPending = false;
+// Таймер: если второго клика не было — отменяем режим подтверждения
+let resetTimer   = null;
+
+/**
+ * Сбрасывает все данные по схеме двойного клика:
+ *   1-й клик — кнопка просит подтверждения (меняет текст)
+ *   2-й клик в течение 3 секунд — выполняет сброс
+ *   Если 3 секунды прошли — возвращается в исходное состояние.
+ *
+ * Причина отказа от confirm(): браузер при открытии через file://
+ * может заблокировать confirm(), и кнопка казалась нерабочей.
+ */
+function handleResetData() {
+  const btn = document.getElementById('btn-reset');
+
+  if (!resetPending) {
+    // Первый клик: входим в режим ожидания подтверждения
+    resetPending     = true;
+    btn.textContent  = '❓';
+    btn.title        = 'Кликните ещё раз для подтверждения';
+
+    btn.classList.add('btn-icon--pending'); // мигающая подсветка
+
+    // Через 3 секунды без второго клика — отменяем
+    resetTimer = setTimeout(function() {
+      resetPending    = false;
+      btn.textContent = '🗑';
+      btn.title       = 'Сбросить все данные';
+      btn.classList.remove('btn-icon--pending');
+    }, 3000);
+
+    return;
+  }
+
+  // Второй клик: выполняем сброс
+  clearTimeout(resetTimer);
+  resetPending = false;
+
+  // Обнуляем state
+  state.income      = 0;
+  state.categories  = [];
+  state.goal.name   = '';
+  state.goal.amount = 0;
+
+  // Удаляем данные из localStorage (тему не трогаем — у неё свой ключ)
+  localStorage.removeItem(STORAGE_KEY);
+
+  // Очищаем все поля ввода
+  document.getElementById('income-input').value = '';
+  document.getElementById('goal-name').value    = '';
+  document.getElementById('goal-amount').value  = '';
+  document.getElementById('cat-name').value     = '';
+  document.getElementById('cat-amount').value   = '';
+
+  // Возвращаем кнопке исходный вид
+  btn.textContent = '🗑';
+  btn.title       = 'Сбросить все данные';
+  btn.classList.remove('btn-icon--pending');
+
+  render();
+}
+
 /** Переключает тему и сохраняет выбор */
 function handleThemeToggle() {
   // Смотрим текущее состояние атрибута на <html>
@@ -516,6 +580,7 @@ document.getElementById('btn-save-income').addEventListener('click', handleSaveI
 document.getElementById('btn-add-category').addEventListener('click', handleAddCategory);
 document.getElementById('btn-save-goal').addEventListener('click', handleSaveGoal);
 document.getElementById('btn-theme-toggle').addEventListener('click', handleThemeToggle);
+document.getElementById('btn-reset').addEventListener('click', handleResetData);
 
 // Тему загружаем первой — до рендера, чтобы не было "мигания" светлого фона
 loadTheme();
