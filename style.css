@@ -586,3 +586,54 @@ button:active {
   font-weight: 500;
   text-align: right;
 }
+
+/* ==========================================
+   Валидация полей: состояния error / success
+   ========================================== */
+
+input.input-error,
+select.input-error {
+  border-color: var(--color-danger);
+  background: var(--color-danger-bg);
+}
+
+input.input-error:focus,
+select.input-error:focus {
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.2);
+  border-color: var(--color-danger);
+}
+
+input.input-success,
+select.input-success {
+  border-color: var(--color-success);
+}
+
+input.input-success:focus,
+select.input-success:focus {
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.2);
+  border-color: var(--color-success);
+}
+
+.field-message {
+  display: block;
+  font-size: 0.8rem;
+  margin-top: 4px;
+  min-height: 1.2em;
+  transition: opacity 0.2s;
+}
+
+.field-message--error {
+  color: var(--color-danger-text);
+}
+
+.field-message--success {
+  color: var(--color-success);
+}
+
+.add-category-form .field-message {
+  grid-column: 1 / -1;
+}
+
+.input-row .field-message {
+  flex-basis: 100%;
+}

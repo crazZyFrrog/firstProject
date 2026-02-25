@@ -362,46 +362,128 @@ function makeResultRow(label, value, modifier) {
 
 
 // ============================================================
-// 6. ОБРАБОТЧИКИ СОБЫТИЙ
+// 6. ВАЛИДАЦИЯ ПОЛЕЙ
+// ============================================================
+
+/**
+ * Определяет, куда вставлять сообщение валидации.
+ * Если input внутри .input-row — сообщение идёт после .input-row,
+ * иначе — после самого input.
+ */
+function getMessageAnchor(input) {
+  const parent = input.parentNode;
+  if (parent.classList.contains('input-row')) return parent;
+  return input;
+}
+
+/**
+ * Находит или создаёт элемент .field-message рядом с полем.
+ */
+function getOrCreateMessage(input) {
+  const anchor = getMessageAnchor(input);
+  let msg = anchor.nextElementSibling;
+  if (!msg || !msg.classList.contains('field-message')) {
+    msg = document.createElement('span');
+    msg.className = 'field-message';
+    anchor.parentNode.insertBefore(msg, anchor.nextSibling);
+  }
+  return msg;
+}
+
+/** Убирает состояние валидации с поля */
+function clearFieldState(input) {
+  input.classList.remove('input-error', 'input-success');
+  const anchor = getMessageAnchor(input);
+  const msg = anchor.nextElementSibling;
+  if (msg && msg.classList.contains('field-message')) {
+    msg.textContent = '';
+    msg.className = 'field-message';
+  }
+}
+
+/** Показывает ошибку на поле */
+function showFieldError(input, text) {
+  input.classList.remove('input-success');
+  input.classList.add('input-error');
+  const msg = getOrCreateMessage(input);
+  msg.textContent = text;
+  msg.className = 'field-message field-message--error';
+}
+
+/** Показывает успех на поле (автоочистка через 2 сек) */
+function showFieldSuccess(input, text) {
+  input.classList.remove('input-error');
+  input.classList.add('input-success');
+  const msg = getOrCreateMessage(input);
+  msg.textContent = text;
+  msg.className = 'field-message field-message--success';
+  setTimeout(function() { clearFieldState(input); }, 2000);
+}
+
+
+// ============================================================
+// 7. ОБРАБОТЧИКИ СОБЫТИЙ
 // ============================================================
 
 /** Сохраняет доход из поля ввода */
 function handleSaveIncome() {
   const input = document.getElementById('income-input');
-  const value = parseFloat(input.value);
+  const raw   = input.value.trim();
 
+  if (!raw) {
+    showFieldError(input, 'Введите сумму дохода');
+    return;
+  }
+
+  const value = parseFloat(raw);
   if (isNaN(value) || value < 0) {
-    alert('Введите корректную сумму дохода (число больше нуля).');
+    showFieldError(input, 'Введите корректное число (0 или больше)');
     return;
   }
 
   state.income = value;
   saveState();
+  showFieldSuccess(input, 'Доход сохранён ✓');
   render();
 }
 
 /** Добавляет новую категорию трат */
 function handleAddCategory() {
-  const nameInput   = document.getElementById('cat-name');
-  const amountInput = document.getElementById('cat-amount');
+  const nameInput    = document.getElementById('cat-name');
+  const amountInput  = document.getElementById('cat-amount');
   const periodSelect = document.getElementById('cat-period');
 
   const name   = nameInput.value.trim();
-  const amount = parseFloat(amountInput.value);
+  const rawAmt = amountInput.value.trim();
   const period = periodSelect.value;
 
+  clearFieldState(nameInput);
+  clearFieldState(amountInput);
+
+  let hasErrors = false;
+
   if (!name) {
-    alert('Введите название категории.');
-    return;
-  }
-  if (isNaN(amount) || amount <= 0) {
-    alert('Введите корректную сумму (число больше нуля).');
-    return;
+    showFieldError(nameInput, 'Введите название категории');
+    hasErrors = true;
   }
 
-  // Создаём объект категории
+  if (!rawAmt) {
+    showFieldError(amountInput, 'Введите сумму');
+    hasErrors = true;
+  } else {
+    const amount = parseFloat(rawAmt);
+    if (isNaN(amount) || amount <= 0) {
+      showFieldError(amountInput, 'Сумма должна быть больше нуля');
+      hasErrors = true;
+    }
+  }
+
+  if (hasErrors) return;
+
+  const amount = parseFloat(rawAmt);
+
   const newCategory = {
-    id: Date.now().toString(), // простой уникальный id на основе времени
+    id: Date.now().toString(),
     name,
     amount,
     period
@@ -409,9 +491,11 @@ function handleAddCategory() {
 
   state.categories.push(newCategory);
   saveState();
+
+  showFieldSuccess(nameInput, 'Категория добавлена ✓');
+
   render();
 
-  // Очищаем поля формы после добавления
   nameInput.value   = '';
   amountInput.value = '';
 }
@@ -446,26 +530,41 @@ function handleSaveGoal() {
   const amountInput = document.getElementById('goal-amount');
 
   const name   = nameInput.value.trim();
-  const amount = parseFloat(amountInput.value);
+  const rawAmt = amountInput.value.trim();
+
+  clearFieldState(nameInput);
+  clearFieldState(amountInput);
+
+  let hasErrors = false;
 
   if (!name) {
-    alert('Введите название цели.');
-    return;
-  }
-  if (isNaN(amount) || amount <= 0) {
-    alert('Введите корректную сумму цели (число больше нуля).');
-    return;
+    showFieldError(nameInput, 'Введите название цели');
+    hasErrors = true;
   }
 
+  if (!rawAmt) {
+    showFieldError(amountInput, 'Введите сумму цели');
+    hasErrors = true;
+  } else {
+    const amount = parseFloat(rawAmt);
+    if (isNaN(amount) || amount <= 0) {
+      showFieldError(amountInput, 'Сумма должна быть больше нуля');
+      hasErrors = true;
+    }
+  }
+
+  if (hasErrors) return;
+
   state.goal.name   = name;
-  state.goal.amount = amount;
+  state.goal.amount = parseFloat(rawAmt);
   saveState();
+  showFieldSuccess(amountInput, 'Цель сохранена ✓');
   render();
 }
 
 
 // ============================================================
-// 7. ТЕМА (светлая / тёмная)
+// 8. ТЕМА (светлая / тёмная)
 // Тема хранится в localStorage отдельно от данных приложения.
 // Активируется через атрибут data-theme="dark" на <html>.
 // ============================================================
@@ -573,7 +672,7 @@ function handleThemeToggle() {
 
 
 // ============================================================
-// 8. СТАРТ ПРИЛОЖЕНИЯ
+// 9. СТАРТ ПРИЛОЖЕНИЯ
 // Вешаем обработчики на кнопки, загружаем данные, рисуем UI.
 // ============================================================
 
@@ -582,6 +681,12 @@ document.getElementById('btn-add-category').addEventListener('click', handleAddC
 document.getElementById('btn-save-goal').addEventListener('click', handleSaveGoal);
 document.getElementById('btn-theme-toggle').addEventListener('click', handleThemeToggle);
 document.getElementById('btn-reset').addEventListener('click', handleResetData);
+
+['income-input', 'cat-name', 'cat-amount', 'goal-name', 'goal-amount'].forEach(function(id) {
+  document.getElementById(id).addEventListener('focus', function() {
+    clearFieldState(this);
+  });
+});
 
 // Тему загружаем первой — до рендера, чтобы не было "мигания" светлого фона
 loadTheme();
