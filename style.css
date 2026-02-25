@@ -248,3 +248,108 @@ button:active {
   font-size: 0.9rem;
   font-weight: 500;
 }
+
+/* ==========================================
+   Шаблоны-чипы для быстрого выбора категорий
+   ========================================== */
+.templates-chips {
+  display: flex;
+  flex-wrap: wrap; /* чипы переносятся на новую строку при нехватке места */
+  gap: 8px;
+}
+
+/* Чип — компактная кнопка-тег */
+.chip {
+  padding: 6px 14px;
+  background-color: #edf2f7;
+  color: #4a5568;
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: 999px; /* капсульная форма */
+  border: 1.5px solid #e2e8f0;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.chip:hover {
+  background-color: #e2e8f0;
+  border-color: #667eea;
+  color: #434190;
+}
+
+.chip:active {
+  transform: scale(0.96);
+}
+
+/* ==========================================
+   Progress bar мечты (секция «Итог»)
+   ========================================== */
+.goal-progress {
+  background: #ebf4ff;
+  border: 1px solid #bee3f8;
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Строка: название мечты + сумма */
+.goal-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.goal-name {
+  font-weight: 600;
+  color: #2b6cb0;
+  font-size: 1rem;
+  flex: 1;
+}
+
+.goal-amount-label {
+  font-weight: 700;
+  color: #2b6cb0;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+/* Дорожка прогресс-бара */
+.progress-track {
+  width: 100%;
+  height: 12px;
+  background-color: #bee3f8;
+  border-radius: 999px;
+  overflow: hidden; /* чтобы заливка не вылезала за скруглённые края */
+}
+
+/* Заполненная часть: ширина задаётся через JS (style="width: X%") */
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #48bb78);
+  border-radius: 999px;
+  transition: width 0.4s ease; /* плавное изменение при пересчёте */
+  min-width: 4px; /* чтобы хоть что-то было видно при 0% */
+}
+
+/* Строка под полосой: откладываю + срок */
+.goal-progress-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.goal-savings-label {
+  font-size: 0.85rem;
+  color: #4a5568;
+}
+
+.goal-time-label {
+  font-size: 0.85rem;
+  color: #2b6cb0;
+  text-align: right;
+}

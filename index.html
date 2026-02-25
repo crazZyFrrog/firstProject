@@ -31,8 +31,14 @@
     <section class="card" id="section-categories">
       <h2>Категории трат</h2>
 
+      <!-- Шаблоны популярных трат: клик заполняет форму ниже -->
+      <p class="hint" style="margin-bottom: 8px">Быстрый выбор:</p>
+      <div id="templates-chips" class="templates-chips">
+        <!-- Чипы генерируются через renderTemplates() в app.js -->
+      </div>
+
       <!-- Форма добавления категории -->
-      <div class="add-category-form">
+      <div class="add-category-form" style="margin-top: 14px">
         <input
           type="text"
           id="cat-name"

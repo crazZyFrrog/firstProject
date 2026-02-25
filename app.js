@@ -1,18 +1,39 @@
 // ============================================================
-// app.js — логика калькулятора трат и мечты
+// app.js — логика калькулятора трат и мечты (V2)
 //
 // Структура файла:
-//   1. Состояние приложения (state)
-//   2. Чистые функции расчёта (не зависят от DOM)
-//   3. Работа с localStorage (сохранение / загрузка)
-//   4. Рендер — отрисовка UI на основе state
-//   5. Обработчики событий (кнопки, клики)
-//   6. Старт приложения
+//   1. Шаблоны популярных трат
+//   2. Состояние приложения (state)
+//   3. Чистые функции расчёта (не зависят от DOM)
+//   4. Работа с localStorage (сохранение / загрузка)
+//   5. Рендер — отрисовка UI на основе state
+//   6. Обработчики событий (кнопки, клики)
+//   7. Старт приложения
 // ============================================================
 
 
 // ============================================================
-// 1. СОСТОЯНИЕ ПРИЛОЖЕНИЯ
+// 1. ШАБЛОНЫ ПОПУЛЯРНЫХ ТРАТ
+// Готовые пресеты: клик на чип заполняет форму добавления.
+// Чтобы добавить новый шаблон — просто добавьте объект в массив.
+// ============================================================
+
+const TEMPLATES = [
+  { name: 'Аренда',        amount: 30000, period: 'month' },
+  { name: 'Еда',           amount: 15000, period: 'month' },
+  { name: 'Транспорт',     amount: 3000,  period: 'month' },
+  { name: 'Кафе',          amount: 5000,  period: 'month' },
+  { name: 'Связь',         amount: 500,   period: 'month' },
+  { name: 'Одежда',        amount: 5000,  period: 'month' },
+  { name: 'Развлечения',   amount: 3000,  period: 'month' },
+  { name: 'Здоровье',      amount: 2000,  period: 'month' },
+  { name: 'Спорт',         amount: 2000,  period: 'month' },
+  { name: 'Подписки',      amount: 500,   period: 'month' },
+];
+
+
+// ============================================================
+// 2. СОСТОЯНИЕ ПРИЛОЖЕНИЯ
 // Один объект хранит все данные. Это удобно: легко сохранить
 // в localStorage целиком и легко читать.
 // ============================================================
@@ -28,7 +49,7 @@ const state = {
 
 
 // ============================================================
-// 2. ЧИСТЫЕ ФУНКЦИИ РАСЧЁТА
+// 3. ЧИСТЫЕ ФУНКЦИИ РАСЧЁТА
 // "Чистые" значит: не меняют state, не трогают DOM,
 // принимают данные → возвращают результат.
 // Их легко тестировать.
@@ -122,7 +143,7 @@ function formatMoney(amount) {
 
 
 // ============================================================
-// 3. РАБОТА С LOCALSTORAGE
+// 4. РАБОТА С LOCALSTORAGE
 // Сохраняем весь state как JSON-строку под ключом 'dream_calc'.
 // ============================================================
 
@@ -154,13 +175,14 @@ function loadState() {
 
 
 // ============================================================
-// 4. РЕНДЕР — отрисовка UI
+// 5. РЕНДЕР — отрисовка UI
 // Одна функция render() читает state и обновляет DOM.
 // Принцип: state — источник истины, DOM — его отражение.
 // ============================================================
 
 function render() {
   renderIncome();
+  renderTemplates(); // чипы-шаблоны для быстрого заполнения формы
   renderCategories();
   renderGoal();
   renderResult();
@@ -172,6 +194,27 @@ function renderIncome() {
   if (state.income > 0) {
     input.value = state.income;
   }
+}
+
+/**
+ * Рисует чипы-шаблоны популярных трат.
+ * Клик на чип заполняет форму — пользователь может сразу нажать "Добавить".
+ */
+function renderTemplates() {
+  const container = document.getElementById('templates-chips');
+  container.innerHTML = ''; // очищаем перед перерисовкой
+
+  TEMPLATES.forEach(function(tpl) {
+    const btn = document.createElement('button');
+    btn.className = 'chip';
+    btn.textContent = tpl.name;
+    // Сохраняем данные шаблона в атрибутах кнопки
+    btn.dataset.name   = tpl.name;
+    btn.dataset.amount = tpl.amount;
+    btn.dataset.period = tpl.period;
+    btn.addEventListener('click', handleTemplateClick);
+    container.appendChild(btn);
+  });
 }
 
 /** Рисует список категорий трат */
@@ -237,34 +280,69 @@ function renderResult() {
   // Строим HTML итогов
   let html = '';
 
+  // Строки "Доход" и "Расходы" — оставляем
   if (hasIncome) {
     html += makeResultRow('Доход в месяц', formatMoney(state.income), '');
   }
-
   if (hasCategories) {
     html += makeResultRow('Расходы в месяц', formatMoney(totalExpenses), '');
   }
 
-  if (hasIncome && hasCategories) {
-    const sign = savings >= 0 ? 'positive' : 'negative';
-    html += makeResultRow('Остаток в месяц', formatMoney(savings), sign);
+  // Строка "Остаток в месяц" убрана — см. правки V2
 
-    if (savings < 0) {
-      html += `<div class="warning">Расходы превышают доход на ${formatMoney(Math.abs(savings))}. Накопить на мечту не получится, пока не уменьшить траты.</div>`;
-    }
+  // Предупреждение о перерасходе
+  if (hasIncome && hasCategories && savings < 0) {
+    html += `<div class="warning">Расходы превышают доход на ${formatMoney(Math.abs(savings))}. Накопить на мечту не получится, пока не уменьшить траты.</div>`;
   }
 
+  // Progress bar мечты — объединяет "Цель" и "Накоплю за" в один блок
   if (hasGoal) {
-    html += makeResultRow(`Цель: «${state.goal.name}»`, formatMoney(state.goal.amount), 'highlight');
-
-    if (months !== null) {
-      html += makeResultRow('Накоплю за', formatMonths(months), 'highlight');
-    } else if (savings <= 0) {
-      html += `<div class="warning">Чтобы рассчитать срок накопления, нужно, чтобы остаток был положительным.</div>`;
-    }
+    html += makeGoalProgressBar(state.goal.name, state.goal.amount, savings, months);
   }
 
   container.innerHTML = html;
+}
+
+/**
+ * Возвращает HTML progress bar для мечты.
+ * Полоса заполняется пропорционально: сколько откладывается за месяц
+ * относительно суммы цели (1 месяц = X% от цели).
+ *
+ * @param {string} goalName    — название мечты
+ * @param {number} goalAmount  — нужная сумма
+ * @param {number} savings     — сколько остаётся в месяц
+ * @param {number|null} months — месяцев до цели (null если копить нельзя)
+ */
+function makeGoalProgressBar(goalName, goalAmount, savings, months) {
+  // Процент заполнения = сбережения за 1 месяц / сумма цели × 100
+  // Ограничиваем 100% сверху на случай, если откладывается больше цели
+  const percent = savings > 0
+    ? Math.min(Math.round((savings / goalAmount) * 100), 100)
+    : 0;
+
+  // Текст под полосой: срок или предупреждение
+  const timeText = months !== null
+    ? `Накоплю за <strong>${formatMonths(months)}</strong>`
+    : 'Укажите доход и траты, чтобы рассчитать срок';
+
+  return `
+    <div class="goal-progress">
+      <div class="goal-progress-header">
+        <span class="goal-name">«${goalName}»</span>
+        <span class="goal-amount-label">${formatMoney(goalAmount)}</span>
+      </div>
+      <div class="progress-track">
+        <!-- Ширина полосы задаётся через style, процент вычислен выше -->
+        <div class="progress-fill" style="width: ${percent}%"></div>
+      </div>
+      <div class="goal-progress-footer">
+        <span class="goal-savings-label">
+          ${savings > 0 ? `Откладываю ${formatMoney(savings)}/мес` : 'Нет свободных средств'}
+        </span>
+        <span class="goal-time-label">${timeText}</span>
+      </div>
+    </div>
+  `;
 }
 
 /**
@@ -284,7 +362,7 @@ function makeResultRow(label, value, modifier) {
 
 
 // ============================================================
-// 5. ОБРАБОТЧИКИ СОБЫТИЙ
+// 6. ОБРАБОТЧИКИ СОБЫТИЙ
 // ============================================================
 
 /** Сохраняет доход из поля ввода */
@@ -349,6 +427,19 @@ function handleDeleteCategory(event) {
   render();
 }
 
+/**
+ * Заполняет форму добавления категории данными из шаблона.
+ * Пользователь может скорректировать значения и нажать "Добавить".
+ */
+function handleTemplateClick(event) {
+  const btn = event.target;
+  document.getElementById('cat-name').value   = btn.dataset.name;
+  document.getElementById('cat-amount').value = btn.dataset.amount;
+  document.getElementById('cat-period').value = btn.dataset.period;
+  // Фокусируемся на поле суммы, чтобы удобно было поправить
+  document.getElementById('cat-amount').focus();
+}
+
 /** Сохраняет цель из полей ввода */
 function handleSaveGoal() {
   const nameInput   = document.getElementById('goal-name');
@@ -374,7 +465,7 @@ function handleSaveGoal() {
 
 
 // ============================================================
-// 6. СТАРТ ПРИЛОЖЕНИЯ
+// 7. СТАРТ ПРИЛОЖЕНИЯ
 // Вешаем обработчики на кнопки, загружаем данные, рисуем UI.
 // ============================================================
 
