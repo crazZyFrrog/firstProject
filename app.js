@@ -552,6 +552,7 @@ function handleResetData() {
   document.getElementById('goal-amount').value  = '';
   document.getElementById('cat-name').value     = '';
   document.getElementById('cat-amount').value   = '';
+  document.getElementById('cat-period').value   = 'month';
 
   // Возвращаем кнопке исходный вид
   btn.textContent = '🗑';
