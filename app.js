@@ -612,13 +612,12 @@ let resetTimer   = null;
  */
 function handleResetData() {
   const btn = document.getElementById('btn-reset');
+  const CONFIRM_TIMEOUT_MS = 3000;
 
-  if (!resetPending) {
-    // Первый клик: входим в режим ожидания подтверждения
-    resetPending     = true;
-    btn.textContent  = '❓';
-    btn.title        = 'Кликните ещё раз для подтверждения';
-
+  function setResetButtonPending() {
+    resetPending    = true;
+    btn.textContent = '❓';
+    btn.title       = 'Кликните ещё раз для подтверждения';
     btn.classList.add('btn-icon--pending'); // мигающая подсветка
 
     // Через 3 секунды без второго клика — отменяем
@@ -627,7 +626,26 @@ function handleResetData() {
       btn.textContent = '🗑';
       btn.title       = 'Сбросить все данные';
       btn.classList.remove('btn-icon--pending');
-    }, 3000);
+    }, CONFIRM_TIMEOUT_MS);
+  }
+
+  function restoreResetButtonDefault() {
+    btn.textContent = '🗑';
+    btn.title       = 'Сбросить все данные';
+    btn.classList.remove('btn-icon--pending');
+  }
+
+  function clearInputs() {
+    document.getElementById('income-input').value = '';
+    document.getElementById('goal-name').value    = '';
+    document.getElementById('goal-amount').value  = '';
+    document.getElementById('cat-name').value     = '';
+    document.getElementById('cat-amount').value   = '';
+    document.getElementById('cat-period').value   = 'month';
+  }
+
+  if (!resetPending) {
+    setResetButtonPending();
 
     return;
   }
@@ -646,17 +664,10 @@ function handleResetData() {
   localStorage.removeItem(STORAGE_KEY);
 
   // Очищаем все поля ввода
-  document.getElementById('income-input').value = '';
-  document.getElementById('goal-name').value    = '';
-  document.getElementById('goal-amount').value  = '';
-  document.getElementById('cat-name').value     = '';
-  document.getElementById('cat-amount').value   = '';
-  document.getElementById('cat-period').value   = 'month';
+  clearInputs();
 
   // Возвращаем кнопке исходный вид
-  btn.textContent = '🗑';
-  btn.title       = 'Сбросить все данные';
-  btn.classList.remove('btn-icon--pending');
+  restoreResetButtonDefault();
 
   render();
 }
