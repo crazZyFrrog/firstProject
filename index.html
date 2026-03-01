@@ -61,8 +61,6 @@
           min="0"
         />
         <select id="cat-period">
-          <option value="day">В день</option>
-          <option value="week">В неделю</option>
           <option value="month" selected>В месяц</option>
         </select>
         <button id="btn-add-category">Добавить</button>
@@ -76,6 +74,33 @@
           <button class="btn-delete" data-id="...">✕</button>
         </li>
         -->
+      </ul>
+    </section>
+
+    <!-- ===================== СЕКЦИЯ: ИСТОРИЯ ТРАТ ===================== -->
+    <section class="card" id="section-expenses">
+      <h2><span class="section-icon">📝</span> История трат</h2>
+      <p class="hint">Фактические расходы:</p>
+
+      <!-- Форма добавления расхода -->
+      <div class="add-expense-form">
+        <input
+          type="text"
+          id="expense-name"
+          placeholder="Название расхода"
+          maxlength="40"
+        />
+        <input
+          type="number"
+          id="expense-amount"
+          placeholder="Сумма (₽)"
+          min="0"
+        />
+        <button id="btn-add-expense">Добавить</button>
+      </div>
+
+      <!-- Список расходов -->
+      <ul id="expenses-list" class="expenses-list">
       </ul>
     </section>
 

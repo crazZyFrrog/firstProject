@@ -637,3 +637,45 @@ select.input-success:focus {
 .input-row .field-message {
   flex-basis: 100%;
 }
+
+/* ==========================================
+   История трат
+   ========================================== */
+.add-expense-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.add-expense-form input[type="text"] {
+  grid-column: 1 / -1;
+}
+
+.add-expense-form button {
+  grid-column: 1 / -1;
+}
+
+.expenses-list {
+  list-style: none;
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.expenses-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-input-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px 9px 14px;
+  border-left: 3px solid var(--color-success);
+}
+
+.expense-label {
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+}

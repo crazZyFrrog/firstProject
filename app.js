@@ -44,7 +44,8 @@ const state = {
   goal: {
     name: '',           // название мечты
     amount: 0           // нужная сумма
-  }
+  },
+  expenses: []          // история фактических расходов { id, categoryName, amount, date }
 };
 
 
@@ -62,10 +63,8 @@ const state = {
  * @returns {number} сумма в месяц
  */
 function normalizeToMonth(amount, period) {
-  if (period === 'day')   return amount * 30;
-  if (period === 'week')  return amount * 4;
   if (period === 'month') return amount;
-  return 0; // неизвестный период — считаем 0
+  return 0;
 }
 
 /**
@@ -168,6 +167,7 @@ function loadState() {
       state.goal.name   = saved.goal.name   || '';
       state.goal.amount = saved.goal.amount || 0;
     }
+    if (Array.isArray(saved.expenses))       state.expenses = saved.expenses;
   } catch (e) {
     console.warn('Не удалось загрузить сохранённые данные:', e);
   }
@@ -185,6 +185,7 @@ function render() {
   renderTemplates(); // чипы-шаблоны для быстрого заполнения формы
   renderCategories();
   renderGoal();
+  renderExpenseHistory();
   renderResult();
 }
 
@@ -227,8 +228,7 @@ function renderCategories() {
     return;
   }
 
-  // Словарь для читаемых названий периодов
-  const periodLabels = { day: 'день', week: 'неделю', month: 'месяц' };
+  const periodLabels = { month: 'месяц' };
 
   state.categories.forEach(function(cat) {
     const li = document.createElement('li');
@@ -258,6 +258,45 @@ function renderGoal() {
   if (state.goal.amount > 0) {
     document.getElementById('goal-amount').value = state.goal.amount;
   }
+}
+
+/** Рисует историю фактических расходов */
+function renderExpenseHistory() {
+  const list = document.getElementById('expenses-list');
+  if (!list) return;
+  
+  list.innerHTML = '';
+
+  if (state.expenses.length === 0) {
+    list.innerHTML = '<li class="hint" style="padding:8px 0">Расходов пока нет.</li>';
+    return;
+  }
+
+  // Сортируем по дате (новые сверху)
+  const sorted = [...state.expenses].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  sorted.forEach(function(expense) {
+    const li = document.createElement('li');
+    
+    const label = document.createElement('span');
+    label.className = 'expense-label';
+    const dateStr = new Date(expense.date).toLocaleDateString('ru-RU', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric' 
+    });
+    label.textContent = `${expense.categoryName} — ${formatMoney(expense.amount)} (${dateStr})`;
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'btn-delete';
+    deleteBtn.textContent = '✕';
+    deleteBtn.dataset.id = expense.id;
+    deleteBtn.addEventListener('click', handleDeleteExpense);
+
+    li.appendChild(label);
+    li.appendChild(deleteBtn);
+    list.appendChild(li);
+  });
 }
 
 /** Рисует блок итогов */
@@ -562,6 +601,67 @@ function handleSaveGoal() {
   render();
 }
 
+/** Добавляет фактический расход */
+function handleAddExpense() {
+  const nameInput   = document.getElementById('expense-name');
+  const amountInput = document.getElementById('expense-amount');
+
+  const name   = nameInput.value.trim();
+  const rawAmt = amountInput.value.trim();
+
+  clearFieldState(nameInput);
+  clearFieldState(amountInput);
+
+  let hasErrors = false;
+
+  if (!name) {
+    showFieldError(nameInput, 'Введите название расхода');
+    hasErrors = true;
+  }
+
+  if (!rawAmt) {
+    showFieldError(amountInput, 'Введите сумму');
+    hasErrors = true;
+  } else {
+    const amount = parseFloat(rawAmt);
+    if (isNaN(amount) || amount <= 0) {
+      showFieldError(amountInput, 'Сумма должна быть больше нуля');
+      hasErrors = true;
+    }
+  }
+
+  if (hasErrors) return;
+
+  const amount = parseFloat(rawAmt);
+
+  const newExpense = {
+    id: Date.now().toString(),
+    categoryName: name,
+    amount,
+    date: new Date().toISOString()
+  };
+
+  state.expenses.push(newExpense);
+  saveState();
+
+  showFieldSuccess(nameInput, 'Расход добавлен ✓');
+
+  render();
+
+  nameInput.value   = '';
+  amountInput.value = '';
+}
+
+/** Удаляет расход по id */
+function handleDeleteExpense(event) {
+  const id = event.target.dataset.id;
+  state.expenses = state.expenses.filter(function(exp) {
+    return exp.id !== id;
+  });
+  saveState();
+  render();
+}
+
 
 // ============================================================
 // 8. ТЕМА (светлая / тёмная)
@@ -659,6 +759,7 @@ function handleResetData() {
   state.categories  = [];
   state.goal.name   = '';
   state.goal.amount = 0;
+  state.expenses    = [];
 
   // Удаляем данные из localStorage (тему не трогаем — у неё свой ключ)
   localStorage.removeItem(STORAGE_KEY);
@@ -690,10 +791,11 @@ function handleThemeToggle() {
 document.getElementById('btn-save-income').addEventListener('click', handleSaveIncome);
 document.getElementById('btn-add-category').addEventListener('click', handleAddCategory);
 document.getElementById('btn-save-goal').addEventListener('click', handleSaveGoal);
+document.getElementById('btn-add-expense').addEventListener('click', handleAddExpense);
 document.getElementById('btn-theme-toggle').addEventListener('click', handleThemeToggle);
 document.getElementById('btn-reset').addEventListener('click', handleResetData);
 
-['income-input', 'cat-name', 'cat-amount', 'goal-name', 'goal-amount'].forEach(function(id) {
+['income-input', 'cat-name', 'cat-amount', 'goal-name', 'goal-amount', 'expense-name', 'expense-amount'].forEach(function(id) {
   document.getElementById(id).addEventListener('focus', function() {
     clearFieldState(this);
   });
