@@ -265,6 +265,7 @@ label:first-of-type {
    ========================================== */
 input[type="text"],
 input[type="number"],
+input[type="date"],
 select {
   width: 100%;
   padding: 10px 13px;
@@ -281,6 +282,7 @@ select {
 
 input[type="text"]:focus,
 input[type="number"]:focus,
+input[type="date"]:focus,
 select:focus {
   border-color: var(--color-primary);
   background: var(--color-card);
@@ -304,6 +306,12 @@ select {
 
 .input-row input {
   flex: 1;
+}
+
+/* Аккуратный вид иконки календаря (WebKit) */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.7;
+  cursor: pointer;
 }
 
 /* ==========================================

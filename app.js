@@ -604,12 +604,15 @@ function handleSaveGoal() {
 /** Добавляет фактический расход */
 function handleAddExpense() {
   const nameInput   = document.getElementById('expense-name');
+  const dateInput   = document.getElementById('expense-date');
   const amountInput = document.getElementById('expense-amount');
 
   const name   = nameInput.value.trim();
+  const dateRaw = dateInput.value.trim();
   const rawAmt = amountInput.value.trim();
 
   clearFieldState(nameInput);
+  clearFieldState(dateInput);
   clearFieldState(amountInput);
 
   let hasErrors = false;
@@ -630,6 +633,20 @@ function handleAddExpense() {
     }
   }
 
+  let dateIso = '';
+  if (!dateRaw) {
+    showFieldError(dateInput, 'Введите дату');
+    hasErrors = true;
+  } else {
+    const parsed = parseExpenseDateInput(dateRaw);
+    if (!parsed) {
+      showFieldError(dateInput, 'Формат: день/месяц/год');
+      hasErrors = true;
+    } else {
+      dateIso = parsed;
+    }
+  }
+
   if (hasErrors) return;
 
   const amount = parseFloat(rawAmt);
@@ -638,7 +655,7 @@ function handleAddExpense() {
     id: Date.now().toString(),
     categoryName: name,
     amount,
-    date: new Date().toISOString()
+    date: dateIso
   };
 
   state.expenses.push(newExpense);
@@ -649,6 +666,7 @@ function handleAddExpense() {
   render();
 
   nameInput.value   = '';
+  dateInput.value   = '';
   amountInput.value = '';
 }
 
@@ -660,6 +678,24 @@ function handleDeleteExpense(event) {
   });
   saveState();
   render();
+}
+
+/** Парсит дату день/месяц/год в ISO-строку */
+function parseExpenseDateInput(value) {
+  const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
+  if (!match) return null;
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+  const utcDate = new Date(Date.UTC(year, month - 1, day));
+  if (
+    utcDate.getUTCFullYear() !== year ||
+    utcDate.getUTCMonth() !== month - 1 ||
+    utcDate.getUTCDate() !== day
+  ) {
+    return null;
+  }
+  return utcDate.toISOString();
 }
 
 
@@ -742,6 +778,9 @@ function handleResetData() {
     document.getElementById('cat-name').value     = '';
     document.getElementById('cat-amount').value   = '';
     document.getElementById('cat-period').value   = 'month';
+    document.getElementById('expense-name').value = '';
+    document.getElementById('expense-date').value = '';
+    document.getElementById('expense-amount').value = '';
   }
 
   if (!resetPending) {
@@ -795,11 +834,55 @@ document.getElementById('btn-add-expense').addEventListener('click', handleAddEx
 document.getElementById('btn-theme-toggle').addEventListener('click', handleThemeToggle);
 document.getElementById('btn-reset').addEventListener('click', handleResetData);
 
-['income-input', 'cat-name', 'cat-amount', 'goal-name', 'goal-amount', 'expense-name', 'expense-amount'].forEach(function(id) {
+['income-input', 'cat-name', 'cat-amount', 'goal-name', 'goal-amount', 'expense-name', 'expense-date', 'expense-amount'].forEach(function(id) {
   document.getElementById(id).addEventListener('focus', function() {
     clearFieldState(this);
   });
 });
+
+// Маска даты: день/месяц/год
+const expenseDateInput = document.getElementById('expense-date');
+if (expenseDateInput) {
+  expenseDateInput.addEventListener('input', function() {
+    const digits = this.value.replace(/\D/g, '').slice(0, 8);
+    let day = digits.slice(0, 2);
+    let month = digits.slice(2, 4);
+    const year = digits.slice(4, 8);
+
+    if (day.length === 2) {
+      let dayNum = Math.max(1, Math.min(31, Number(day)));
+      day = String(dayNum).padStart(2, '0');
+    }
+
+    if (month.length === 2) {
+      let monthNum = Math.max(1, Math.min(12, Number(month)));
+      month = String(monthNum).padStart(2, '0');
+    }
+
+    if (year.length === 4 && day.length === 2 && month.length === 2) {
+      const yearNum = Number(year);
+      const monthNum = Number(month);
+      const maxDay = new Date(Date.UTC(yearNum, monthNum, 0)).getUTCDate();
+      let dayNum = Math.max(1, Math.min(maxDay, Number(day)));
+      day = String(dayNum).padStart(2, '0');
+    }
+
+    const parts = [];
+    if (day) parts.push(day);
+    if (month) parts.push(month);
+    if (year) parts.push(year);
+    this.value = parts.join('/');
+  });
+
+  expenseDateInput.addEventListener('blur', function() {
+    const parts = this.value.split('/').map(part => part.replace(/\D/g, ''));
+    if (parts.length !== 3) return;
+    const day = parts[0] ? parts[0].padStart(2, '0') : '';
+    const month = parts[1] ? parts[1].padStart(2, '0') : '';
+    const year = parts[2] ? parts[2].padStart(4, '0') : '';
+    this.value = [day, month, year].filter(Boolean).join('/');
+  });
+}
 
 // Тему загружаем первой — до рендера, чтобы не было "мигания" светлого фона
 loadTheme();
