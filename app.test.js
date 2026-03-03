@@ -102,6 +102,39 @@ test('calcTotals: нулевой доход → savings отрицательны
   console.assert(savings === -10000, `savings: ожидалось -10000, получили ${savings}`);
 });
 
+// ============================================================
+// Тесты: лимиты по категориям
+// ============================================================
+
+test('calcMonthlyExpensesByCategory: учитывает только текущий месяц', function() {
+  const now = new Date(Date.UTC(2026, 2, 10)); // март 2026
+  const expenses = [
+    { categoryName: 'Еда', amount: 1000, date: new Date(Date.UTC(2026, 2, 5)).toISOString() },
+    { categoryName: 'Еда', amount: 500,  date: new Date(Date.UTC(2026, 1, 25)).toISOString() },
+    { categoryName: 'Транспорт', amount: 700, date: new Date(Date.UTC(2026, 2, 2)).toISOString() }
+  ];
+
+  const result = calcMonthlyExpensesByCategory(expenses, now);
+  console.assert(result['Еда'] === 1000, `Еда: ожидалось 1000, получили ${result['Еда']}`);
+  console.assert(result['Транспорт'] === 700, `Транспорт: ожидалось 700, получили ${result['Транспорт']}`);
+});
+
+test('calcCategoryLimitInfo: определяет превышение лимита', function() {
+  const now = new Date(Date.UTC(2026, 2, 10));
+  const categories = [
+    { id: '1', name: 'Еда', amount: 15000, period: 'month', limit: 1200 },
+    { id: '2', name: 'Кафе', amount: 5000, period: 'month', limit: 0 }
+  ];
+  const expenses = [
+    { categoryName: 'Еда', amount: 1500, date: new Date(Date.UTC(2026, 2, 3)).toISOString() }
+  ];
+
+  const info = calcCategoryLimitInfo(categories, expenses, now);
+  console.assert(info['1'].isExceeded === true, 'Еда: лимит должен быть превышен');
+  console.assert(info['1'].overBy === 300, 'Еда: превышение 300');
+  console.assert(info['2'].isExceeded === false, 'Кафе: лимит не задан, превышения нет');
+});
+
 
 // ============================================================
 // Тесты: calcMonthsToGoal
@@ -284,7 +317,8 @@ function withCleanState(fn) {
   var saved = {
     income: state.income,
     categories: JSON.parse(JSON.stringify(state.categories)),
-    goal: { name: state.goal.name, amount: state.goal.amount }
+    goal: { name: state.goal.name, amount: state.goal.amount },
+    expenses: JSON.parse(JSON.stringify(state.expenses))
   };
   try {
     fn();
@@ -293,8 +327,9 @@ function withCleanState(fn) {
     state.categories = saved.categories;
     state.goal.name = saved.goal.name;
     state.goal.amount = saved.goal.amount;
+    state.expenses = saved.expenses;
     saveState();
-    ['income-input', 'cat-name', 'cat-amount', 'goal-name', 'goal-amount'].forEach(function(id) {
+    ['income-input', 'cat-name', 'cat-amount', 'cat-limit', 'goal-name', 'goal-amount'].forEach(function(id) {
       clearFieldState(document.getElementById(id));
     });
     render();

@@ -40,7 +40,7 @@ const TEMPLATES = [
 
 const state = {
   income: 0,            // ежемесячный доход (число)
-  categories: [],       // массив объектов { id, name, amount, period }
+  categories: [],       // массив объектов { id, name, amount, period, limit }
   goal: {
     name: '',           // название мечты
     amount: 0           // нужная сумма
@@ -140,6 +140,65 @@ function formatMoney(amount) {
   return amount.toLocaleString('ru-RU') + ' ₽';
 }
 
+/**
+ * Возвращает ключ месяца в формате "YYYY-M" по UTC.
+ * @param {Date} date
+ * @returns {string}
+ */
+function getUtcMonthKey(date) {
+  return `${date.getUTCFullYear()}-${date.getUTCMonth()}`;
+}
+
+/**
+ * Считает фактические расходы за текущий месяц по категориям.
+ * @param {Array} expenses — история расходов
+ * @param {Date} [nowDate] — опциональная дата "сейчас" для тестов
+ * @returns {Object} объект { [categoryName]: сумма }
+ */
+function calcMonthlyExpensesByCategory(expenses, nowDate) {
+  const now = nowDate instanceof Date ? nowDate : new Date();
+  const currentMonthKey = getUtcMonthKey(now);
+  const totals = {};
+
+  expenses.forEach(function(expense) {
+    if (!expense || !expense.date) return;
+    const expenseDate = new Date(expense.date);
+    if (Number.isNaN(expenseDate.getTime())) return;
+    if (getUtcMonthKey(expenseDate) !== currentMonthKey) return;
+    if (!expense.categoryName) return;
+
+    totals[expense.categoryName] = (totals[expense.categoryName] || 0) + expense.amount;
+  });
+
+  return totals;
+}
+
+/**
+ * Сравнивает лимиты категорий с фактом за месяц.
+ * @param {Array} categories — категории из state
+ * @param {Array} expenses — история расходов
+ * @param {Date} [nowDate]
+ * @returns {Object} объект { [categoryId]: { spent, limit, isExceeded, overBy } }
+ */
+function calcCategoryLimitInfo(categories, expenses, nowDate) {
+  const spentByCategory = calcMonthlyExpensesByCategory(expenses, nowDate);
+  const result = {};
+
+  categories.forEach(function(cat) {
+    const limit = typeof cat.limit === 'number' ? cat.limit : 0;
+    const spent = spentByCategory[cat.name] || 0;
+    const isExceeded = limit > 0 && spent > limit;
+    result[cat.id] = {
+      spent,
+      limit,
+      isExceeded,
+      overBy: isExceeded ? spent - limit : 0
+    };
+  });
+
+  return result;
+}
+
 
 // ============================================================
 // 4. РАБОТА С LOCALSTORAGE
@@ -162,7 +221,17 @@ function loadState() {
     const saved = JSON.parse(raw);
     // Переносим только известные поля, чтобы не сломать структуру
     if (typeof saved.income === 'number')    state.income = saved.income;
-    if (Array.isArray(saved.categories))     state.categories = saved.categories;
+    if (Array.isArray(saved.categories)) {
+      state.categories = saved.categories.map(function(cat) {
+        return {
+          id: cat.id,
+          name: cat.name,
+          amount: cat.amount,
+          period: cat.period,
+          limit: typeof cat.limit === 'number' ? cat.limit : 0
+        };
+      });
+    }
     if (saved.goal && typeof saved.goal === 'object') {
       state.goal.name   = saved.goal.name   || '';
       state.goal.amount = saved.goal.amount || 0;
@@ -229,6 +298,7 @@ function renderCategories() {
   }
 
   const periodLabels = { month: 'месяц' };
+  const limitInfo = calcCategoryLimitInfo(state.categories, state.expenses);
 
   state.categories.forEach(function(cat) {
     const li = document.createElement('li');
@@ -236,6 +306,14 @@ function renderCategories() {
     const label = document.createElement('span');
     label.className = 'cat-label';
     label.textContent = `${cat.name} — ${formatMoney(cat.amount)} / ${periodLabels[cat.period]}`;
+
+    const info = limitInfo[cat.id];
+    if (info && info.isExceeded) {
+      const warn = document.createElement('span');
+      warn.className = 'cat-warning';
+      warn.textContent = `Превышено на ${formatMoney(info.overBy)}`;
+      label.appendChild(warn);
+    }
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'btn-delete';
@@ -490,14 +568,17 @@ function handleSaveIncome() {
 function handleAddCategory() {
   const nameInput    = document.getElementById('cat-name');
   const amountInput  = document.getElementById('cat-amount');
+  const limitInput   = document.getElementById('cat-limit');
   const periodSelect = document.getElementById('cat-period');
 
   const name   = nameInput.value.trim();
   const rawAmt = amountInput.value.trim();
+  const rawLimit = limitInput.value.trim();
   const period = periodSelect.value;
 
   clearFieldState(nameInput);
   clearFieldState(amountInput);
+  clearFieldState(limitInput);
 
   let hasErrors = false;
 
@@ -517,15 +598,25 @@ function handleAddCategory() {
     }
   }
 
+  if (rawLimit) {
+    const limitValue = parseFloat(rawLimit);
+    if (isNaN(limitValue) || limitValue <= 0) {
+      showFieldError(limitInput, 'Лимит должен быть больше нуля');
+      hasErrors = true;
+    }
+  }
+
   if (hasErrors) return;
 
   const amount = parseFloat(rawAmt);
+  const limit = rawLimit ? parseFloat(rawLimit) : 0;
 
   const newCategory = {
     id: Date.now().toString(),
     name,
     amount,
-    period
+    period,
+    limit
   };
 
   state.categories.push(newCategory);
@@ -537,6 +628,7 @@ function handleAddCategory() {
 
   nameInput.value   = '';
   amountInput.value = '';
+  limitInput.value  = '';
 }
 
 /** Удаляет категорию по id (id берём из data-атрибута кнопки) */
@@ -777,6 +869,7 @@ function handleResetData() {
     document.getElementById('goal-amount').value  = '';
     document.getElementById('cat-name').value     = '';
     document.getElementById('cat-amount').value   = '';
+    document.getElementById('cat-limit').value    = '';
     document.getElementById('cat-period').value   = 'month';
     document.getElementById('expense-name').value = '';
     document.getElementById('expense-date').value = '';
@@ -834,7 +927,7 @@ document.getElementById('btn-add-expense').addEventListener('click', handleAddEx
 document.getElementById('btn-theme-toggle').addEventListener('click', handleThemeToggle);
 document.getElementById('btn-reset').addEventListener('click', handleResetData);
 
-['income-input', 'cat-name', 'cat-amount', 'goal-name', 'goal-amount', 'expense-name', 'expense-date', 'expense-amount'].forEach(function(id) {
+['income-input', 'cat-name', 'cat-amount', 'cat-limit', 'goal-name', 'goal-amount', 'expense-name', 'expense-date', 'expense-amount'].forEach(function(id) {
   document.getElementById(id).addEventListener('focus', function() {
     clearFieldState(this);
   });
